@@ -1,75 +1,119 @@
-:root {
-    --navy: #1a237e;
-    --gold: #ffd700;
-    --success: #2e7d32;
-    --bg: #f4f7f6;
+// 1. FIREBASE CONFIG
+const firebaseConfig = {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_PROJECT.firebaseapp.com",
+    databaseURL: "https://YOUR_PROJECT-default-rtdb.firebaseio.com",
+    projectId: "YOUR_PROJECT",
+    storageBucket: "YOUR_PROJECT.appspot.com",
+    messagingSenderId: "YOUR_ID",
+    appId: "YOUR_APP_ID"
+};
+
+firebase.initializeApp(firebaseConfig);
+const database = firebase.database();
+
+let selectedSeat = null;
+let currentPrice = 599;
+let selectedMonths = 1;
+let expiryDateString = "";
+
+// 2. ON LOAD
+window.onload = function() {
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('startDate').value = today;
+    loadLibrary(); // Prefetch seat data
+};
+
+// 3. LOGIN BUTTON FIX
+function showBooking() {
+    const name = document.getElementById('userName').value.trim();
+    if(!name) { alert("Please enter your name!"); return; }
+    
+    document.getElementById('authSection').classList.add('hidden');
+    document.getElementById('bookingSection').classList.remove('hidden');
+    
+    calculateExpiry();
+    window.scrollTo(0,0);
 }
 
-body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 0; }
-.container { max-width: 900px; margin: auto; padding: 20px; box-sizing: border-box; }
-.hidden { display: none !important; }
-
-/* Cards & Forms */
-.card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); max-width: 450px; margin: 60px auto; text-align: center; }
-.brand-name { color: var(--navy); margin: 0; }
-.form-group { text-align: left; margin-bottom: 15px; }
-.form-group label { display: block; font-weight: bold; margin-bottom: 5px; color: var(--navy); }
-input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
-
-/* Seat Layout */
-.section-container { background: white; padding: 20px; border-radius: 10px; margin-bottom: 25px; border: 1px solid #ddd; }
-.seat-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 12px; margin-top: 15px; }
-.seat { 
-    padding: 15px 0; 
-    background: #e0e0e0; 
-    border: 2px solid transparent;
-    border-radius: 8px; 
-    text-align: center; 
-    cursor: pointer; 
-    font-weight: bold; 
-    transition: all 0.2s ease;
+// 4. SEAT GENERATION
+function loadLibrary() {
+    const layout = document.getElementById('libraryLayout');
+    database.ref('bookedSeats').on('value', (snapshot) => {
+        const booked = snapshot.val() || {};
+        layout.innerHTML = "";
+        
+        ['A', 'B', 'C', 'D', 'E'].forEach(sec => {
+            let html = `<div class="section-container"><h3>Section ${sec}</h3><div class="seat-grid">`;
+            for(let i=1; i<=14; i++) {
+                if(i === 8) html += `<div class="aisle"></div>`;
+                let id = `${sec}${i}`;
+                let status = booked[id] ? "occupied" : "";
+                let action = booked[id] ? "" : `onclick="markSeat('${id}', this)"`;
+                html += `<div class="seat ${status}" id="seat-${id}" ${action}>${id}</div>`;
+            }
+            layout.innerHTML += html + `</div></div>`;
+        });
+    });
 }
-.seat:hover { background: #d0d0d0; }
-.seat.selected { 
-    background: var(--gold) !important; 
-    color: var(--navy) !important; 
-    border: 2px solid var(--navy) !important;
-    transform: scale(1.05);
+
+// 5. SEAT SELECTION FIX
+function markSeat(id, el) {
+    document.querySelectorAll('.seat').forEach(s => s.classList.remove('selected'));
+    el.classList.add('selected');
+    selectedSeat = id;
 }
-.seat.occupied { 
-    background: #ffcdd2 !important; 
-    color: #b71c1c !important; 
-    cursor: not-allowed !important; 
-    opacity: 0.7;
+
+function selectPlan(price, months, el) {
+    document.querySelectorAll('.plan-card').forEach(p => p.classList.remove('active'));
+    el.classList.add('active');
+    currentPrice = price;
+    selectedMonths = months;
+    document.getElementById('displayPrice').innerText = price;
+    calculateExpiry();
 }
-.aisle { grid-column: 1 / -1; height: 10px; }
 
-/* Plans & Pricing */
-.plans { display: flex; gap: 10px; margin: 15px 0; }
-.plan-card { flex: 1; padding: 15px; background: white; border: 2px solid #eee; border-radius: 10px; text-align: center; cursor: pointer; transition: 0.3s; }
-.plan-card.active { border-color: var(--navy); background: #e8eaf6; font-weight: bold; }
-.validity-badge { background: #e8f5e9; color: var(--success); padding: 12px; border-radius: 8px; font-weight: bold; margin: 15px 0; text-align: center; border: 1px solid var(--success); }
+function calculateExpiry() {
+    const start = new Date(document.getElementById('startDate').value);
+    const end = new Date(start);
+    end.setDate(start.getDate() + (selectedMonths * 30));
+    expiryDateString = end.toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' });
+    document.getElementById('validityInfo').innerText = `Valid Till: ${expiryDateString}`;
+}
 
-/* Receipt Modal */
-.modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; z-index: 1000; }
-.receipt-card { background: white; width: 400px; border-radius: 15px; overflow: hidden; }
-.receipt-banner { background: linear-gradient(135deg, var(--navy), #3f51b5); color: white; padding: 30px; text-align: center; }
-.receipt-content { padding: 20px; }
-.receipt-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; border-top: 1px dashed #ccc; padding-top: 15px; margin-top: 15px; }
-.r-item strong { display: block; font-size: 11px; color: #777; text-transform: uppercase; }
-.r-item p { margin: 4px 0; font-weight: bold; color: var(--navy); }
+// 6. PAYMENT
+function payNow() {
+    if(!selectedSeat) { alert("Please select a seat!"); return; }
 
-/* Buttons */
-.btn-primary, .btn-pay { width: 100%; padding: 15px; border: none; border-radius: 8px; font-weight: bold; font-size: 16px; cursor: pointer; }
-.btn-primary { background: var(--navy); color: white; }
-.btn-pay { background: var(--success); color: white; margin-top: 10px; }
-.btn-print { width: 100%; padding: 15px; background: var(--navy); color: white; border: none; font-weight: bold; cursor: pointer; }
-.btn-close { width: 100%; padding: 10px; background: none; border: none; color: #666; cursor: pointer; }
+    const options = {
+        "key": "rzp_test_SQHamHN8vRebZO",
+        "amount": currentPrice * 100,
+        "currency": "INR",
+        "name": "JAG HARI LIBRARY",
+        "handler": function (response){
+            database.ref('bookedSeats/' + selectedSeat).set({
+                student: document.getElementById('userName').value,
+                expiry: expiryDateString,
+                payID: response.razorpay_payment_id
+            }).then(() => {
+                showFinalReceipt(response.razorpay_payment_id);
+            });
+        },
+        "prefill": { "name": document.getElementById('userName').value },
+        "theme": { "color": "#1a237e" }
+    };
+    new Razorpay(options).open();
+}
 
-@media print {
-    body * { visibility: hidden; }
-    .receipt-card, .receipt-card * { visibility: visible; }
-    .receipt-card { position: fixed; left: 0; top: 0; width: 100%; }
-    .btn-print, .btn-close { display: none !important; }
-           }
+function showFinalReceipt(id) {
+    const modal = document.getElementById('receiptModal');
+    modal.style.display = 'flex';
+    document.getElementById('rID').innerText = id;
+    document.getElementById('rSeat').innerText = selectedSeat;
+    document.getElementById('rAmt').innerText = currentPrice;
+    document.getElementById('rName').innerText = document.getElementById('userName').value;
+    document.getElementById('rMobile').innerText = document.getElementById('userMobile').value;
+    document.getElementById('rPlan').innerText = selectedMonths + " Month(s)";
+    document.getElementById('rExpiry').innerText = expiryDateString;
+}
 
