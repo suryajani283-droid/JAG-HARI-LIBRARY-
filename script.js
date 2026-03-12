@@ -1,113 +1,109 @@
-// JAG HARI LIBRARY - Official Script
+// 1. Firebase Configuration
+const firebaseConfig = {
+    apiKey: "YOUR_KEY",
+    authDomain: "YOUR_PROJECT.firebaseapp.com",
+    databaseURL: "https://YOUR_PROJECT.firebaseio.com",
+    projectId: "YOUR_PROJECT",
+    storageBucket: "YOUR_PROJECT.appspot.com",
+    messagingSenderId: "YOUR_ID",
+    appId: "YOUR_APP_ID"
+};
+
+firebase.initializeApp(firebaseConfig);
+const database = firebase.database();
+
 let selectedSeat = null;
-let currentPrice = 599; 
+let currentPrice = 599;
+let selectedMonths = 1;
+let expiryDateString = "";
 
-// 1. Generate 5 Sections with 14 seats each (7+7)
-const layoutDiv = document.getElementById('libraryLayout');
-const sections = ['A', 'B', 'C', 'D', 'E'];
+// 2. Initial Setup
+window.onload = function() {
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('startDate').value = today;
+    loadLibrary();
+};
 
-if (layoutDiv) {
-    layoutDiv.innerHTML = ""; // Clear existing to prevent duplicates
-    sections.forEach(sec => {
-        let html = `<div class="section-container"><h3>Section ${sec}</h3><div class="seat-grid">`;
-        for(let i=1; i<=14; i++) {
-            if(i === 8) html += `<div class="aisle"></div>`; 
-            html += `<div class="seat" id="seat-${sec}${i}" onclick="selectSeat('${sec}${i}', this)">${sec}${i}</div>`;
-        }
-        html += `</div></div>`;
-        layoutDiv.innerHTML += html;
+function loadLibrary() {
+    const layout = document.getElementById('libraryLayout');
+    layout.innerHTML = "";
+    database.ref('bookedSeats').once('value', (snapshot) => {
+        const booked = snapshot.val() || {};
+        ['A', 'B', 'C', 'D', 'E'].forEach(sec => {
+            let html = `<div class="section-container"><h3>Section ${sec}</h3><div class="seat-grid">`;
+            for(let i=1; i<=14; i++) {
+                if(i === 8) html += `<div class="aisle"></div>`;
+                let id = `${sec}${i}`;
+                let isTaken = booked[id] ? "occupied" : "";
+                let click = booked[id] ? "" : `onclick="selectSeat('${id}', this)"`;
+                html += `<div class="seat ${isTaken}" id="seat-${id}" ${click}>${id}</div>`;
+            }
+            layout.innerHTML += html + `</div></div>`;
+        });
     });
 }
 
-// 2. Handle Seat Selection
 function selectSeat(id, el) {
     document.querySelectorAll('.seat').forEach(s => s.classList.remove('selected'));
     el.classList.add('selected');
     selectedSeat = id;
 }
 
-// 3. Handle Plan Selection
-function selectPlan(price, el) {
+function selectPlan(price, months, el) {
     document.querySelectorAll('.plan-card').forEach(p => p.classList.remove('active'));
     el.classList.add('active');
-    currentPrice = parseInt(price); // Ensure it's a number
+    currentPrice = price;
+    selectedMonths = months;
     document.getElementById('displayPrice').innerText = price;
+    calculateExpiry();
 }
 
-// 4. Navigation
+function calculateExpiry() {
+    const start = new Date(document.getElementById('startDate').value);
+    const end = new Date(start);
+    end.setDate(start.getDate() + (selectedMonths * 30));
+    expiryDateString = end.toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' });
+    document.getElementById('validityInfo').innerText = `Valid till: ${expiryDateString}`;
+}
+
 function showBooking() {
-    const name = document.getElementById('userName').value;
-    if(!name || name.trim() === "") {
-        alert("Please enter your name.");
-        return;
-    }
+    if(!document.getElementById('userName').value) return alert("Enter Name");
     document.getElementById('authSection').classList.add('hidden');
     document.getElementById('bookingSection').classList.remove('hidden');
+    calculateExpiry();
 }
 
-// 5. Razorpay Integration (Fixed & Robust)
 function payNow() {
-    // Check if Razorpay script is actually loaded
-    if (typeof Razorpay === 'undefined') {
-        alert("Razorpay SDK not loaded. Please check your internet or index.html script tag.");
-        return;
-    }
-
-    if(!selectedSeat) {
-        alert("Please select a seat first!");
-        return;
-    }
-
-    const userName = document.getElementById('userName').value;
-    const userMobile = document.getElementById('userMobile').value;
-
-    // Razorpay amount must be an integer in Paise (e.g. 59900)
-    const totalAmountPaise = Math.round(currentPrice * 100);
-
+    if(!selectedSeat) return alert("Select a seat!");
+    
     const options = {
-        "key": "rzp_test_SQHamHN8vRebZO", 
-        "amount": totalAmountPaise, 
+        "key": "rzp_test_SQHamHN8vRebZO",
+        "amount": currentPrice * 100,
         "currency": "INR",
         "name": "JAG HARI LIBRARY",
-        "description": "Library Seat: " + selectedSeat,
-        "image": "https://cdn-icons-png.flaticon.com/512/2232/2232688.png",
         "handler": function (response){
-            console.log("Payment Success ID:", response.razorpay_payment_id);
-            showReceipt(response.razorpay_payment_id);
+            database.ref('bookedSeats/' + selectedSeat).set({
+                name: document.getElementById('userName').value,
+                expiry: expiryDateString,
+                payment: response.razorpay_payment_id
+            }).then(() => {
+                showReceipt(response.razorpay_payment_id);
+            });
         },
-        "prefill": {
-            "name": userName,
-            "contact": userMobile
-        },
-        "theme": { "color": "#1a237e" },
-        "modal": {
-            "ondismiss": function(){ console.log('Checkout closed'); }
-        }
+        "prefill": { "name": document.getElementById('userName').value, "contact": document.getElementById('userMobile').value },
+        "theme": { "color": "#1a237e" }
     };
-
-    try {
-        const rzp1 = new Razorpay(options);
-        
-        rzp1.on('payment.failed', function (response){
-            console.error("Reason:", response.error.reason);
-            alert("Payment Failed: " + response.error.description);
-        });
-
-        rzp1.open();
-    } catch (err) {
-        console.error("Razorpay Open Error:", err);
-        alert("Could not open Razorpay. Check console for details.");
-    }
+    new Razorpay(options).open();
 }
 
-// 6. Receipt Display
 function showReceipt(payID) {
-    const modal = document.getElementById('receiptModal');
-    if(modal) {
-        modal.classList.remove('hidden');
-        document.getElementById('rID').innerText = payID;
-        document.getElementById('rSeat').innerText = selectedSeat;
-        document.getElementById('rAmt').innerText = currentPrice;
-    }
+    document.getElementById('receiptModal').classList.remove('hidden');
+    document.getElementById('rID').innerText = payID;
+    document.getElementById('rSeat').innerText = selectedSeat;
+    document.getElementById('rAmt').innerText = currentPrice;
+    document.getElementById('rName').innerText = document.getElementById('userName').value;
+    document.getElementById('rMobile').innerText = document.getElementById('userMobile').value;
+    document.getElementById('rPlan').innerText = selectedMonths + " Month(s)";
+    document.getElementById('rExpiry').innerText = expiryDateString;
 }
 
