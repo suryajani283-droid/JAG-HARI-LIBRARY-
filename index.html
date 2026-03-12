@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JAG HARI LIBRARY | Online Seat Booking</title>
+    <title>JAG HARI LIBRARY | Online Booking</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
@@ -34,10 +34,12 @@
     <div class="container hidden" id="bookingSection">
         <header class="booking-header">
             <h1>Select Your Seat</h1>
-            <p>JAG HARI LIBRARY - Premium Learning Space</p>
+            <p>Choose a seat and select your joining date</p>
         </header>
 
-        <div id="libraryLayout"></div> <div class="pricing-section">
+        <div id="libraryLayout"></div>
+
+        <div class="pricing-section">
             <div class="date-picker-box">
                 <label><strong>1. Joining Date:</strong></label>
                 <input type="date" id="startDate" onchange="calculateExpiry()">
@@ -58,7 +60,7 @@
                     <p>₹3200</p>
                 </div>
             </div>
-            <div id="validityInfo" class="validity-badge"></div>
+            <div id="validityInfo" class="validity-badge">Calculating validity...</div>
             <button class="btn-pay" onclick="payNow()">Book & Pay ₹<span id="displayPrice">599</span></button>
         </div>
     </div>
@@ -92,4 +94,3 @@
     <script src="script.js"></script>
 </body>
 </html>
-
