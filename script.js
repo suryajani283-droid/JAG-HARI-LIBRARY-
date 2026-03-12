@@ -1,106 +1,93 @@
 let selectedSeat = null;
-let selectedPrice = 599;
-let selectedMonths = 1;
-let expiryDateText = "";
+let currentPrice = 599;
+let currentMonths = 1;
+let expiryDate = "";
 
-// 1. Switch from Login to Booking
-function openBooking() {
+function startBookingFlow() {
     const name = document.getElementById('userName').value.trim();
-    if(!name) { alert("Please enter Student Name!"); return; }
-    
-    document.getElementById('authSection').classList.add('hidden');
-    document.getElementById('bookingSection').classList.remove('hidden');
-    
-    // Set default date to today
+    if(!name) { alert("Please enter name!"); return; }
+
+    // FORCE SWITCHING PAGES
+    document.getElementById('authSection').style.display = 'none';
+    document.getElementById('bookingSection').style.display = 'block';
+
+    // Set Date & Load Seats
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('startDate').value = today;
     
-    renderSeats();
-    updateValidity();
+    renderLayout();
+    updateInfo();
 }
 
-// 2. Generate Seats (Using LocalStorage instead of Firebase)
-function renderSeats() {
+function renderLayout() {
     const layout = document.getElementById('libraryLayout');
-    const bookedSeats = JSON.parse(localStorage.getItem('bookedSeats')) || {};
+    // We use LocalStorage to keep bookings even if page refreshes
+    const bookedData = JSON.parse(localStorage.getItem('lib_bookings')) || {};
+    
     layout.innerHTML = "";
-
     ['A', 'B', 'C', 'D', 'E'].forEach(sec => {
         let html = `<div class="section-container"><h3>Section ${sec}</h3><div class="seat-grid">`;
         for(let i=1; i<=14; i++) {
             if(i === 8) html += `<div class="aisle"></div>`;
             let id = `${sec}${i}`;
-            let isOccupied = bookedSeats[id] ? "occupied" : "";
-            let action = bookedSeats[id] ? "" : `onclick="pickSeat('${id}', this)"`;
-            html += `<div class="seat ${isOccupied}" id="${id}" ${action}>${id}</div>`;
+            let isFull = bookedData[id] ? "occupied" : "";
+            let click = bookedData[id] ? "" : `onclick="selectThisSeat('${id}', this)"`;
+            html += `<div class="seat ${isFull}" id="${id}" ${click}>${id}</div>`;
         }
         layout.innerHTML += html + `</div></div>`;
     });
 }
 
-// 3. Select Seat
-function pickSeat(id, el) {
+function selectThisSeat(id, el) {
     document.querySelectorAll('.seat').forEach(s => s.classList.remove('selected'));
     el.classList.add('selected');
     selectedSeat = id;
 }
 
-// 4. Plan Selection
-function selectPlan(price, months, el) {
-    document.querySelectorAll('.plan-card').forEach(p => p.classList.remove('active'));
+function setPlan(p, m, el) {
+    document.querySelectorAll('.plan-card').forEach(c => c.classList.remove('active'));
     el.classList.add('active');
-    selectedPrice = price;
-    selectedMonths = months;
-    document.getElementById('totalPrice').innerText = price;
-    updateValidity();
+    currentPrice = p;
+    currentMonths = m;
+    document.getElementById('priceText').innerText = p;
+    updateInfo();
 }
 
-// 5. Date Calculation
-function updateValidity() {
-    const startInput = document.getElementById('startDate').value;
-    if(!startInput) return;
-    const start = new Date(startInput);
+function updateInfo() {
+    const start = new Date(document.getElementById('startDate').value);
     const end = new Date(start);
-    end.setDate(start.getDate() + (selectedMonths * 30));
-    expiryDateText = end.toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' });
-    document.getElementById('validityInfo').innerText = `Valid Till: ${expiryDateText}`;
+    end.setDate(start.getDate() + (currentMonths * 30));
+    expiryDate = end.toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' });
+    document.getElementById('validityInfo').innerText = `Expires on: ${expiryDate}`;
 }
 
-// 6. Payment (Razorpay)
-function processPayment() {
-    if(!selectedSeat) { alert("Please select a seat first!"); return; }
+function handlePay() {
+    if(!selectedSeat) { alert("Select a seat first!"); return; }
 
     const options = {
-        "key": "rzp_test_SQHamHN8vRebZO", // Replace with your Live Key later
-        "amount": selectedPrice * 100,
+        "key": "rzp_test_SQHamHN8vRebZO",
+        "amount": currentPrice * 100,
         "name": "JAG HARI LIBRARY",
-        "description": "Seat " + selectedSeat,
         "handler": function (response){
-            // Save seat as occupied in LocalStorage
-            let booked = JSON.parse(localStorage.getItem('bookedSeats')) || {};
-            booked[selectedSeat] = {
-                name: document.getElementById('userName').value,
-                expiry: expiryDateText
-            };
-            localStorage.setItem('bookedSeats', JSON.stringify(booked));
+            // Save seat locally
+            let bookings = JSON.parse(localStorage.getItem('lib_bookings')) || {};
+            bookings[selectedSeat] = { name: document.getElementById('userName').value, expiry: expiryDate };
+            localStorage.setItem('lib_bookings', JSON.stringify(bookings));
 
             showReceipt(response.razorpay_payment_id);
         },
         "theme": { "color": "#1a237e" }
     };
-    const rzp = new Razorpay(options);
-    rzp.open();
+    new Razorpay(options).open();
 }
 
-// 7. Show Final Receipt
-function showReceipt(txnId) {
+function showReceipt(id) {
     document.getElementById('receiptModal').style.display = 'flex';
     document.getElementById('rName').innerText = document.getElementById('userName').value;
-    document.getElementById('rDate').innerText = document.getElementById('startDate').value;
     document.getElementById('rSeat').innerText = selectedSeat;
-    document.getElementById('rPlan').innerText = selectedMonths + " Month(s)";
-    document.getElementById('rAmt').innerText = selectedPrice;
-    document.getElementById('rExpiry').innerText = expiryDateText;
-    document.getElementById('rID').innerText = txnId;
+    document.getElementById('rPlan').innerText = currentMonths + " Month(s)";
+    document.getElementById('rAmt').innerText = currentPrice;
+    document.getElementById('rExpiry').innerText = expiryDate;
+    document.getElementById('rID').innerText = id;
 }
 
