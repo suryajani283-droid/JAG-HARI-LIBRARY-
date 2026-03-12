@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JAG HARI LIBRARY | Seat Booking</title>
+    <title>JAG HARI LIBRARY | Online Seat Booking</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
@@ -17,7 +17,7 @@
             <p class="subtitle">Digital Booking Portal</p>
             <div class="form-group">
                 <label>Student Name</label>
-                <input type="text" id="userName" placeholder="Enter Full Name" required>
+                <input type="text" id="userName" placeholder="Enter Full Name">
             </div>
             <div class="form-group">
                 <label>Mobile Number</label>
@@ -27,7 +27,7 @@
                 <label>Course / Study</label>
                 <input type="text" id="userCourse" placeholder="e.g. UPSC, SSC, NEET">
             </div>
-            <button class="btn-primary" onclick="showBooking()">Continue</button>
+            <button class="btn-primary" onclick="showBooking()">Continue to Seats</button>
         </div>
     </div>
 
@@ -37,9 +37,7 @@
             <p>JAG HARI LIBRARY - Premium Learning Space</p>
         </header>
 
-        <div id="libraryLayout"></div>
-
-        <div class="pricing-section">
+        <div id="libraryLayout"></div> <div class="pricing-section">
             <div class="date-picker-box">
                 <label><strong>1. Joining Date:</strong></label>
                 <input type="date" id="startDate" onchange="calculateExpiry()">
@@ -60,7 +58,7 @@
                     <p>₹3200</p>
                 </div>
             </div>
-            <div id="validityInfo" class="validity-badge">Calculating validity...</div>
+            <div id="validityInfo" class="validity-badge"></div>
             <button class="btn-pay" onclick="payNow()">Book & Pay ₹<span id="displayPrice">599</span></button>
         </div>
     </div>
