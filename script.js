@@ -1,132 +1,75 @@
-// 1. CONFIGURATION
-const firebaseConfig = {
-    apiKey: "YOUR_KEY",
-    authDomain: "YOUR_PROJECT.firebaseapp.com",
-    databaseURL: "https://YOUR_PROJECT.firebaseio.com",
-    projectId: "YOUR_PROJECT",
-    storageBucket: "YOUR_PROJECT.appspot.com",
-    messagingSenderId: "YOUR_ID",
-    appId: "YOUR_APP_ID"
-};
-
-firebase.initializeApp(firebaseConfig);
-const database = firebase.database();
-
-let selectedSeat = null;
-let currentPrice = 599;
-let selectedMonths = 1;
-let expiryDateString = "";
-
-// 2. PAGE INITIALIZATION
-window.onload = function() {
-    const today = new Date().toISOString().split('T')[0];
-    const dateInput = document.getElementById('startDate');
-    if(dateInput) dateInput.value = today;
-    
-    // Generate layout immediately so it's ready in the background
-    loadLibrary();
-};
-
-function loadLibrary() {
-    const layout = document.getElementById('libraryLayout');
-    if(!layout) return;
-    
-    layout.innerHTML = "";
-    database.ref('bookedSeats').once('value', (snapshot) => {
-        const booked = snapshot.val() || {};
-        ['A', 'B', 'C', 'D', 'E'].forEach(sec => {
-            let html = `<div class="section-container"><h3>Section ${sec}</h3><div class="seat-grid">`;
-            for(let i=1; i<=14; i++) {
-                if(i === 8) html += `<div class="aisle"></div>`; // Central gap
-                let id = `${sec}${i}`;
-                let isTaken = booked[id] ? "occupied" : "";
-                let clickAction = booked[id] ? "" : `onclick="selectSeat('${id}', this)"`;
-                html += `<div class="seat ${isTaken}" id="seat-${id}" ${clickAction}>${id}</div>`;
-            }
-            layout.innerHTML += html + `</div></div>`;
-        });
-    });
+:root {
+    --navy: #1a237e;
+    --gold: #ffd700;
+    --success: #2e7d32;
+    --bg: #f4f7f6;
 }
 
-// 3. UI ACTIONS
-function selectSeat(id, el) {
-    document.querySelectorAll('.seat').forEach(s => s.classList.remove('selected'));
-    el.classList.add('selected');
-    selectedSeat = id;
-}
+body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 0; }
+.container { max-width: 900px; margin: auto; padding: 20px; box-sizing: border-box; }
+.hidden { display: none !important; }
 
-function selectPlan(price, months, el) {
-    document.querySelectorAll('.plan-card').forEach(p => p.classList.remove('active'));
-    el.classList.add('active');
-    currentPrice = parseInt(price);
-    selectedMonths = parseInt(months);
-    document.getElementById('displayPrice').innerText = price;
-    calculateExpiry();
-}
+/* Cards & Forms */
+.card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); max-width: 450px; margin: 60px auto; text-align: center; }
+.brand-name { color: var(--navy); margin: 0; }
+.form-group { text-align: left; margin-bottom: 15px; }
+.form-group label { display: block; font-weight: bold; margin-bottom: 5px; color: var(--navy); }
+input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
 
-function calculateExpiry() {
-    const startVal = document.getElementById('startDate').value;
-    if(!startVal) return;
-    const start = new Date(startVal);
-    const end = new Date(start);
-    end.setDate(start.getDate() + (selectedMonths * 30));
-    expiryDateString = end.toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' });
-    document.getElementById('validityInfo').innerText = `Membership Valid Till: ${expiryDateString}`;
+/* Seat Layout */
+.section-container { background: white; padding: 20px; border-radius: 10px; margin-bottom: 25px; border: 1px solid #ddd; }
+.seat-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 12px; margin-top: 15px; }
+.seat { 
+    padding: 15px 0; 
+    background: #e0e0e0; 
+    border: 2px solid transparent;
+    border-radius: 8px; 
+    text-align: center; 
+    cursor: pointer; 
+    font-weight: bold; 
+    transition: all 0.2s ease;
 }
-
-function showBooking() {
-    const name = document.getElementById('userName').value.trim();
-    if(!name) {
-        alert("Please enter Student Name to proceed.");
-        return;
-    }
-    document.getElementById('authSection').classList.add('hidden');
-    document.getElementById('bookingSection').classList.remove('hidden');
-    calculateExpiry();
+.seat:hover { background: #d0d0d0; }
+.seat.selected { 
+    background: var(--gold) !important; 
+    color: var(--navy) !important; 
+    border: 2px solid var(--navy) !important;
+    transform: scale(1.05);
 }
-
-// 4. RAZORPAY & RECEIPT
-function payNow() {
-    if(!selectedSeat) {
-        alert("Please click and select a seat from the layout first!");
-        return;
-    }
-    
-    const options = {
-        "key": "rzp_test_SQHamHN8vRebZO",
-        "amount": currentPrice * 100,
-        "currency": "INR",
-        "name": "JAG HARI LIBRARY",
-        "description": "Seat Booking: " + selectedSeat,
-        "handler": function (response){
-            database.ref('bookedSeats/' + selectedSeat).set({
-                studentName: document.getElementById('userName').value,
-                expiry: expiryDateString,
-                paymentID: response.razorpay_payment_id
-            }).then(() => {
-                showReceipt(response.razorpay_payment_id);
-            });
-        },
-        "prefill": {
-            "name": document.getElementById('userName').value,
-            "contact": document.getElementById('userMobile').value
-        },
-        "theme": { "color": "#1a237e" }
-    };
-    new Razorpay(options).open();
+.seat.occupied { 
+    background: #ffcdd2 !important; 
+    color: #b71c1c !important; 
+    cursor: not-allowed !important; 
+    opacity: 0.7;
 }
+.aisle { grid-column: 1 / -1; height: 10px; }
 
-function showReceipt(payID) {
-    const modal = document.getElementById('receiptModal');
-    modal.style.display = 'flex'; 
-    modal.classList.remove('hidden');
+/* Plans & Pricing */
+.plans { display: flex; gap: 10px; margin: 15px 0; }
+.plan-card { flex: 1; padding: 15px; background: white; border: 2px solid #eee; border-radius: 10px; text-align: center; cursor: pointer; transition: 0.3s; }
+.plan-card.active { border-color: var(--navy); background: #e8eaf6; font-weight: bold; }
+.validity-badge { background: #e8f5e9; color: var(--success); padding: 12px; border-radius: 8px; font-weight: bold; margin: 15px 0; text-align: center; border: 1px solid var(--success); }
 
-    document.getElementById('rID').innerText = payID;
-    document.getElementById('rSeat').innerText = selectedSeat;
-    document.getElementById('rAmt').innerText = currentPrice;
-    document.getElementById('rName').innerText = document.getElementById('userName').value;
-    document.getElementById('rMobile').innerText = document.getElementById('userMobile').value;
-    document.getElementById('rPlan').innerText = selectedMonths + " Month(s)";
-    document.getElementById('rExpiry').innerText = expiryDateString;
-}
+/* Receipt Modal */
+.modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+.receipt-card { background: white; width: 400px; border-radius: 15px; overflow: hidden; }
+.receipt-banner { background: linear-gradient(135deg, var(--navy), #3f51b5); color: white; padding: 30px; text-align: center; }
+.receipt-content { padding: 20px; }
+.receipt-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; border-top: 1px dashed #ccc; padding-top: 15px; margin-top: 15px; }
+.r-item strong { display: block; font-size: 11px; color: #777; text-transform: uppercase; }
+.r-item p { margin: 4px 0; font-weight: bold; color: var(--navy); }
+
+/* Buttons */
+.btn-primary, .btn-pay { width: 100%; padding: 15px; border: none; border-radius: 8px; font-weight: bold; font-size: 16px; cursor: pointer; }
+.btn-primary { background: var(--navy); color: white; }
+.btn-pay { background: var(--success); color: white; margin-top: 10px; }
+.btn-print { width: 100%; padding: 15px; background: var(--navy); color: white; border: none; font-weight: bold; cursor: pointer; }
+.btn-close { width: 100%; padding: 10px; background: none; border: none; color: #666; cursor: pointer; }
+
+@media print {
+    body * { visibility: hidden; }
+    .receipt-card, .receipt-card * { visibility: visible; }
+    .receipt-card { position: fixed; left: 0; top: 0; width: 100%; }
+    .btn-print, .btn-close { display: none !important; }
+           }
 
