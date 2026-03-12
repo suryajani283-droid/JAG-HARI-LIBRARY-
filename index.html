@@ -5,7 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>JAG HARI LIBRARY | Online Seat Booking</title>
     <link rel="stylesheet" href="style.css">
+    
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
 </head>
 <body>
 
@@ -15,7 +19,7 @@
             <p class="subtitle">Registration & Login</p>
             <div class="form-group">
                 <label>Full Name</label>
-                <input type="text" id="userName" placeholder="Enter your name">
+                <input type="text" id="userName" placeholder="Enter your name" required>
             </div>
             <div class="form-group">
                 <label>Mobile Number</label>
@@ -40,7 +44,7 @@
         </div>
 
         <div class="pricing-section">
-            <h3>Select Plan</h3>
+            <h3>Select Membership Plan</h3>
             <div class="plans">
                 <div class="plan-card active" onclick="selectPlan(599, this)">
                     <h4>1 Month</h4>
@@ -62,17 +66,19 @@
     <div id="receiptModal" class="modal hidden">
         <div class="modal-content">
             <div class="receipt-header">
-                <h2>JAG HARI LIBRARY</h2>
-                <p>Official Booking Receipt</p>
+                <h2 style="margin:0;">JAG HARI LIBRARY</h2>
+                <p style="color: #666;">Official Booking Confirmation</p>
             </div>
-            <div class="receipt-body">
+            <hr>
+            <div class="receipt-body" style="text-align: left; padding: 10px 0;">
                 <p><strong>Payment ID:</strong> <span id="rID"></span></p>
-                <p><strong>Seat:</strong> <span id="rSeat"></span></p>
-                <p><strong>Amount:</strong> ₹<span id="rAmt"></span></p>
-                <p><strong>Status:</strong> <span style="color:green">Confirmed</span></p>
+                <p><strong>Seat Number:</strong> <span id="rSeat"></span></p>
+                <p><strong>Amount Paid:</strong> ₹<span id="rAmt"></span></p>
+                <p><strong>Status:</strong> <span style="color:green; font-weight:bold;">CONFIRMED</span></p>
             </div>
-            <button class="btn-primary" onclick="window.print()">Print Receipt</button>
-            <button class="btn-secondary" onclick="location.reload()">Close</button>
+            <hr>
+            <button class="btn-primary" onclick="window.print()">Download / Print</button>
+            <button class="btn-secondary" style="background:#eee; color:#333; margin-top:10px; width:100%; padding:10px; border:none; cursor:pointer;" onclick="location.reload()">Close</button>
         </div>
     </div>
 
