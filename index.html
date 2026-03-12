@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JAG HARI LIBRARY | Online Seat Booking</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+</head>
+<body>
+
+    <div class="container" id="authSection">
+        <div class="card">
+            <h2>JAG HARI LIBRARY</h2>
+            <p class="subtitle">Registration & Login</p>
+            <div class="form-group">
+                <label>Full Name</label>
+                <input type="text" id="userName" placeholder="Enter your name">
+            </div>
+            <div class="form-group">
+                <label>Mobile Number</label>
+                <input type="tel" id="userMobile" placeholder="+91">
+            </div>
+            <div class="form-group">
+                <label>Course / Study</label>
+                <input type="text" id="userCourse" placeholder="e.g. Competitive Exams">
+            </div>
+            <button class="btn-primary" onclick="showBooking()">Get Started</button>
+        </div>
+    </div>
+
+    <div class="container hidden" id="bookingSection">
+        <header>
+            <h1>Select Your Seat</h1>
+            <p>JAG HARI LIBRARY - Premium Learning Space</p>
+        </header>
+
+        <div class="layout-grid">
+            <div id="libraryLayout"></div>
+        </div>
+
+        <div class="pricing-section">
+            <h3>Select Plan</h3>
+            <div class="plans">
+                <div class="plan-card active" onclick="selectPlan(599, this)">
+                    <h4>1 Month</h4>
+                    <p>₹599</p>
+                </div>
+                <div class="plan-card" onclick="selectPlan(1699, this)">
+                    <h4>3 Months</h4>
+                    <p>₹1699</p>
+                </div>
+                <div class="plan-card" onclick="selectPlan(3200, this)">
+                    <h4>6 Months</h4>
+                    <p>₹3200</p>
+                </div>
+            </div>
+            <button class="btn-pay" onclick="payNow()">Book Seat & Pay ₹<span id="displayPrice">599</span></button>
+        </div>
+    </div>
+
+    <div id="receiptModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="receipt-header">
+                <h2>JAG HARI LIBRARY</h2>
+                <p>Official Booking Receipt</p>
+            </div>
+            <div class="receipt-body">
+                <p><strong>Payment ID:</strong> <span id="rID"></span></p>
+                <p><strong>Seat:</strong> <span id="rSeat"></span></p>
+                <p><strong>Amount:</strong> ₹<span id="rAmt"></span></p>
+                <p><strong>Status:</strong> <span style="color:green">Confirmed</span></p>
+            </div>
+            <button class="btn-primary" onclick="window.print()">Print Receipt</button>
+            <button class="btn-secondary" onclick="location.reload()">Close</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
+
