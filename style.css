@@ -1,54 +1,51 @@
-:root { --navy: #1a237e; --gold: #ffd700; --green: #2e7d32; --bg: #f4f7f6; }
+:root { --navy: #1a237e; --gold: #ffd700; --green: #2e7d32; --bg: #f8f9fa; }
 body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg); margin: 0; padding: 0; }
 .container { max-width: 800px; margin: auto; padding: 20px; box-sizing: border-box; }
 .hidden { display: none !important; }
 
-/* Auth Card */
-.card { background: white; padding: 40px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); max-width: 400px; margin: 80px auto; text-align: center; }
-.brand-name { color: var(--navy); font-size: 28px; margin: 0; }
-.form-group { text-align: left; margin-bottom: 20px; }
-.form-group label { display: block; font-weight: bold; margin-bottom: 5px; color: #555; }
+/* Cards */
+.card { background: white; padding: 35px; border-radius: 15px; box-shadow: 0 8px 25px rgba(0,0,0,0.1); max-width: 400px; margin: 80px auto; text-align: center; }
+.brand-name { color: var(--navy); margin: 0; font-size: 26px; }
+.form-group { text-align: left; margin-top: 15px; }
+.form-group label { display: block; font-weight: bold; margin-bottom: 5px; }
 input { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; }
 
-/* Seat Layout */
-.section-container { background: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #ddd; }
-.seat-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; }
-.seat { padding: 15px 0; background: #eee; border-radius: 6px; text-align: center; cursor: pointer; font-weight: bold; border: 2px solid transparent; transition: 0.2s; }
-.seat.occupied { background: #ffcdd2; color: #b71c1c; cursor: not-allowed; opacity: 0.6; }
+/* Seats - FIXED SELECTION */
+.section-container { background: white; padding: 15px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #ddd; }
+.seat-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; margin-top: 10px; }
+.seat { padding: 12px 0; background: #eee; border-radius: 5px; text-align: center; cursor: pointer; font-weight: bold; transition: 0.2s; border: 2px solid transparent; }
+.seat.occupied { background: #ffcdd2; color: #b71c1c; cursor: not-allowed; }
 
-/* CRITICAL: Selection Highlight */
+/* This makes the gold color work */
 .seat.selected { 
     background-color: var(--gold) !important; 
     color: var(--navy) !important; 
-    border: 2px solid var(--navy) !important; 
+    border-color: var(--navy) !important; 
 }
 
 .aisle { grid-column: 1 / -1; height: 10px; }
 
 /* Plans */
-.plans { display: flex; gap: 10px; margin: 20px 0; }
-.plan-card { flex: 1; padding: 15px; background: white; border: 2px solid #ddd; border-radius: 10px; text-align: center; cursor: pointer; }
-.plan-card.active { border-color: var(--navy); background: #f0f2ff; font-weight: bold; }
+.plans { display: flex; gap: 10px; margin: 15px 0; }
+.plan-card { flex: 1; padding: 15px; border: 2px solid #ddd; border-radius: 8px; text-align: center; cursor: pointer; background: white; }
+.plan-card.active { border-color: var(--navy); background: #f0f3ff; }
 .validity-badge { background: #e8f5e9; color: var(--green); padding: 12px; border-radius: 8px; font-weight: bold; margin-bottom: 20px; text-align: center; border: 1px solid var(--green); }
 
-/* Receipt Modal */
-.modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; z-index: 9999; }
+/* Buttons */
+.btn-primary, .btn-pay { width: 100%; padding: 15px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; }
+.btn-primary { background: var(--navy); color: white; }
+.btn-pay { background: var(--green); color: white; }
+
+/* Modal */
+.modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; z-index: 1000; }
 .receipt-card { background: white; width: 380px; border-radius: 12px; overflow: hidden; }
 .receipt-banner { background: var(--navy); color: white; padding: 25px; text-align: center; }
 .receipt-content { padding: 20px; }
 .receipt-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; border-top: 1px dashed #ccc; padding-top: 15px; margin-top: 15px; }
 
-/* Buttons */
-.btn-primary, .btn-pay { width: 100%; padding: 16px; border: none; border-radius: 8px; font-weight: bold; font-size: 16px; cursor: pointer; }
-.btn-primary { background: var(--navy); color: white; }
-.btn-pay { background: var(--green); color: white; }
-.btn-print { width: 100%; padding: 15px; background: var(--navy); color: white; border: none; cursor: pointer; }
-.btn-close { width: 100%; padding: 10px; background: none; border: none; color: #777; cursor: pointer; }
-
 @media print {
     body * { visibility: hidden; }
     .receipt-card, .receipt-card * { visibility: visible; }
-    .receipt-card { position: fixed; left: 0; top: 0; width: 100%; box-shadow: none; }
-    .btn-print, .btn-close { display: none !important; }
-}
+    .receipt-card { position: fixed; left: 0; top: 0; width: 100%; }
+                   }
 
