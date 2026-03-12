@@ -43,7 +43,7 @@ function payNow() {
     if(!selectedSeat) return alert("Please select a seat!");
 
     var options = {
-        "key": "YOUR_RAZORPAY_KEY", // Get from Razorpay Dashboard
+        "key": "rzp_test_SQHamHN8vRebZO", // Get from Razorpay Dashboard
         "amount": currentPrice * 100,
         "currency": "INR",
         "name": "JAG HARI LIBRARY",
