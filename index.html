@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JAG HARI LIBRARY | Online Booking</title>
+    <title>JAG HARI LIBRARY | Seat Booking</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
@@ -14,7 +14,7 @@
     <div class="container" id="authSection">
         <div class="card">
             <h2 class="brand-name">JAG HARI LIBRARY</h2>
-            <p class="subtitle">Enter Details to Book Your Seat</p>
+            <p class="subtitle">Digital Booking Portal</p>
             <div class="form-group">
                 <label>Student Name</label>
                 <input type="text" id="userName" placeholder="Enter Full Name">
@@ -24,28 +24,28 @@
                 <input type="tel" id="userMobile" placeholder="+91">
             </div>
             <div class="form-group">
-                <label>Study Course</label>
-                <input type="text" id="userCourse" placeholder="e.g. UPSC, NEET, SSC">
+                <label>Course / Study</label>
+                <input type="text" id="userCourse" placeholder="e.g. UPSC, SSC, NEET">
             </div>
-            <button class="btn-primary" onclick="showBooking()">Continue to Seat Selection</button>
+            <button class="btn-primary" onclick="showBooking()">Continue</button>
         </div>
     </div>
 
     <div class="container hidden" id="bookingSection">
         <header class="booking-header">
             <h1>Select Your Seat</h1>
-            <p>Choose your preferred spot in the library layout</p>
+            <p>JAG HARI LIBRARY - Barmer</p>
         </header>
 
         <div id="libraryLayout"></div>
 
         <div class="pricing-section">
             <div class="date-picker-box">
-                <label><strong>1. Select Joining Date:</strong></label>
+                <label><strong>1. Joining Date:</strong></label>
                 <input type="date" id="startDate" onchange="calculateExpiry()">
             </div>
             
-            <label><strong>2. Select Membership Plan:</strong></label>
+            <label><strong>2. Membership Plan:</strong></label>
             <div class="plans">
                 <div class="plan-card active" onclick="selectPlan(599, 1, this)">
                     <h4>1 Month</h4>
@@ -60,7 +60,7 @@
                     <p>₹3200</p>
                 </div>
             </div>
-            <div id="validityInfo" class="validity-badge"></div>
+            <div id="validityInfo" class="validity-badge">Calculating validity...</div>
             <button class="btn-pay" onclick="payNow()">Book & Pay ₹<span id="displayPrice">599</span></button>
         </div>
     </div>
@@ -69,24 +69,24 @@
         <div class="receipt-card">
             <div class="receipt-banner">
                 <h2>JAG HARI LIBRARY</h2>
-                <p>Payment Successful - Official Receipt</p>
+                <p>Official Booking Confirmation</p>
             </div>
             <div class="receipt-content">
                 <div class="receipt-row">
                     <span><strong>Student:</strong> <span id="rName"></span></span>
-                    <span><strong>Contact:</strong> <span id="rMobile"></span></span>
+                    <span><strong>Mobile:</strong> <span id="rMobile"></span></span>
                 </div>
                 <div class="receipt-grid">
                     <div class="r-item"><strong>Seat No</strong><p id="rSeat"></p></div>
                     <div class="r-item"><strong>Plan</strong><p id="rPlan"></p></div>
-                    <div class="r-item"><strong>Fee Paid</strong><p>₹<span id="rAmt"></span></p></div>
-                    <div class="r-item"><strong>Valid Till</strong><p id="rExpiry"></p></div>
+                    <div class="r-item"><strong>Amount</strong><p>₹<span id="rAmt"></span></p></div>
+                    <div class="r-item"><strong>Expiry</strong><p id="rExpiry"></p></div>
                 </div>
-                <p class="txn-id">Transaction ID: <span id="rID"></span></p>
+                <p class="txn-id">Txn ID: <span id="rID"></span></p>
             </div>
             <div class="receipt-footer">
-                <button class="btn-print" onclick="window.print()">Print Receipt (PDF)</button>
-                <button class="btn-close" onclick="location.reload()">Book Another Seat</button>
+                <button class="btn-print" onclick="window.print()">Print PDF Receipt</button>
+                <button class="btn-close" onclick="location.reload()">Done</button>
             </div>
         </div>
     </div>
