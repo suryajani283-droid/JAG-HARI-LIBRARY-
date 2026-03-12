@@ -1,6 +1,6 @@
-// 1. Firebase Configuration
+// 1. DATABASE CONFIG (Replace with your Firebase details)
 const firebaseConfig = {
-    apiKey: "YOUR_KEY",
+    apiKey: "YOUR_API_KEY",
     authDomain: "YOUR_PROJECT.firebaseapp.com",
     databaseURL: "https://YOUR_PROJECT.firebaseio.com",
     projectId: "YOUR_PROJECT",
@@ -17,7 +17,7 @@ let currentPrice = 599;
 let selectedMonths = 1;
 let expiryDateString = "";
 
-// 2. Initial Setup
+// 2. LOAD SEATS ON START
 window.onload = function() {
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('startDate').value = today;
@@ -43,6 +43,7 @@ function loadLibrary() {
     });
 }
 
+// 3. SELECTION LOGIC
 function selectSeat(id, el) {
     document.querySelectorAll('.seat').forEach(s => s.classList.remove('selected'));
     el.classList.add('selected');
@@ -59,43 +60,54 @@ function selectPlan(price, months, el) {
 }
 
 function calculateExpiry() {
-    const start = new Date(document.getElementById('startDate').value);
+    const startVal = document.getElementById('startDate').value;
+    if(!startVal) return;
+    const start = new Date(startVal);
     const end = new Date(start);
     end.setDate(start.getDate() + (selectedMonths * 30));
     expiryDateString = end.toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' });
-    document.getElementById('validityInfo').innerText = `Valid till: ${expiryDateString}`;
+    document.getElementById('validityInfo').innerText = `Membership Valid Till: ${expiryDateString}`;
 }
 
 function showBooking() {
-    if(!document.getElementById('userName').value) return alert("Enter Name");
+    const name = document.getElementById('userName').value;
+    if(!name || name.trim() === "") return alert("Please enter Student Name");
     document.getElementById('authSection').classList.add('hidden');
     document.getElementById('bookingSection').classList.remove('hidden');
     calculateExpiry();
 }
 
+// 4. PAYMENT & FIREBASE SAVE
 function payNow() {
-    if(!selectedSeat) return alert("Select a seat!");
+    if(!selectedSeat) return alert("Please select a seat first!");
     
     const options = {
-        "key": "rzp_test_SQHamHN8vRebZO",
+        "key": "rzp_test_SQHamHN8vRebZO", // Your Test Key
         "amount": currentPrice * 100,
         "currency": "INR",
         "name": "JAG HARI LIBRARY",
+        "description": "Booking Seat " + selectedSeat,
         "handler": function (response){
+            // Save to Firebase Database
             database.ref('bookedSeats/' + selectedSeat).set({
-                name: document.getElementById('userName').value,
+                studentName: document.getElementById('userName').value,
                 expiry: expiryDateString,
-                payment: response.razorpay_payment_id
+                paymentID: response.razorpay_payment_id
             }).then(() => {
                 showReceipt(response.razorpay_payment_id);
             });
         },
-        "prefill": { "name": document.getElementById('userName').value, "contact": document.getElementById('userMobile').value },
+        "prefill": {
+            "name": document.getElementById('userName').value,
+            "contact": document.getElementById('userMobile').value
+        },
         "theme": { "color": "#1a237e" }
     };
-    new Razorpay(options).open();
+    const rzp = new Razorpay(options);
+    rzp.open();
 }
 
+// 5. RECEIPT MODAL
 function showReceipt(payID) {
     document.getElementById('receiptModal').classList.remove('hidden');
     document.getElementById('rID').innerText = payID;
