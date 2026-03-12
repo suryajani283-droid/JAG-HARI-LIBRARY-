@@ -17,33 +17,38 @@ let currentPrice = 599;
 let selectedMonths = 1;
 let expiryDateString = "";
 
-// 2. LOAD PAGE
+// 2. PAGE INITIALIZATION
 window.onload = function() {
     const today = new Date().toISOString().split('T')[0];
-    document.getElementById('startDate').value = today;
+    const dateInput = document.getElementById('startDate');
+    if(dateInput) dateInput.value = today;
+    
+    // Generate layout immediately so it's ready in the background
     loadLibrary();
 };
 
 function loadLibrary() {
     const layout = document.getElementById('libraryLayout');
+    if(!layout) return;
+    
     layout.innerHTML = "";
     database.ref('bookedSeats').once('value', (snapshot) => {
         const booked = snapshot.val() || {};
         ['A', 'B', 'C', 'D', 'E'].forEach(sec => {
             let html = `<div class="section-container"><h3>Section ${sec}</h3><div class="seat-grid">`;
             for(let i=1; i<=14; i++) {
-                if(i === 8) html += `<div class="aisle"></div>`;
+                if(i === 8) html += `<div class="aisle"></div>`; // Central gap
                 let id = `${sec}${i}`;
                 let isTaken = booked[id] ? "occupied" : "";
-                let click = booked[id] ? "" : `onclick="selectSeat('${id}', this)"`;
-                html += `<div class="seat ${isTaken}" id="seat-${id}" ${click}>${id}</div>`;
+                let clickAction = booked[id] ? "" : `onclick="selectSeat('${id}', this)"`;
+                html += `<div class="seat ${isTaken}" id="seat-${id}" ${clickAction}>${id}</div>`;
             }
             layout.innerHTML += html + `</div></div>`;
         });
     });
 }
 
-// 3. ACTIONS
+// 3. UI ACTIONS
 function selectSeat(id, el) {
     document.querySelectorAll('.seat').forEach(s => s.classList.remove('selected'));
     el.classList.add('selected');
@@ -70,22 +75,29 @@ function calculateExpiry() {
 }
 
 function showBooking() {
-    if(!document.getElementById('userName').value.trim()) return alert("Enter Student Name");
+    const name = document.getElementById('userName').value.trim();
+    if(!name) {
+        alert("Please enter Student Name to proceed.");
+        return;
+    }
     document.getElementById('authSection').classList.add('hidden');
     document.getElementById('bookingSection').classList.remove('hidden');
     calculateExpiry();
 }
 
-// 4. PAYMENT
+// 4. RAZORPAY & RECEIPT
 function payNow() {
-    if(!selectedSeat) return alert("Please select a seat first!");
+    if(!selectedSeat) {
+        alert("Please click and select a seat from the layout first!");
+        return;
+    }
     
     const options = {
         "key": "rzp_test_SQHamHN8vRebZO",
         "amount": currentPrice * 100,
         "currency": "INR",
         "name": "JAG HARI LIBRARY",
-        "description": "Seat " + selectedSeat,
+        "description": "Seat Booking: " + selectedSeat,
         "handler": function (response){
             database.ref('bookedSeats/' + selectedSeat).set({
                 studentName: document.getElementById('userName').value,
@@ -106,7 +118,7 @@ function payNow() {
 
 function showReceipt(payID) {
     const modal = document.getElementById('receiptModal');
-    modal.style.display = 'flex'; // Force display to show
+    modal.style.display = 'flex'; 
     modal.classList.remove('hidden');
 
     document.getElementById('rID').innerText = payID;
