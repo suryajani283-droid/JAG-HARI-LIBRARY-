@@ -1,6 +1,6 @@
-// 1. DATABASE CONFIG (Replace with your Firebase details)
+// 1. CONFIGURATION
 const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
+    apiKey: "YOUR_KEY",
     authDomain: "YOUR_PROJECT.firebaseapp.com",
     databaseURL: "https://YOUR_PROJECT.firebaseio.com",
     projectId: "YOUR_PROJECT",
@@ -17,7 +17,7 @@ let currentPrice = 599;
 let selectedMonths = 1;
 let expiryDateString = "";
 
-// 2. LOAD SEATS ON START
+// 2. LOAD PAGE
 window.onload = function() {
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('startDate').value = today;
@@ -43,7 +43,7 @@ function loadLibrary() {
     });
 }
 
-// 3. SELECTION LOGIC
+// 3. ACTIONS
 function selectSeat(id, el) {
     document.querySelectorAll('.seat').forEach(s => s.classList.remove('selected'));
     el.classList.add('selected');
@@ -53,8 +53,8 @@ function selectSeat(id, el) {
 function selectPlan(price, months, el) {
     document.querySelectorAll('.plan-card').forEach(p => p.classList.remove('active'));
     el.classList.add('active');
-    currentPrice = price;
-    selectedMonths = months;
+    currentPrice = parseInt(price);
+    selectedMonths = parseInt(months);
     document.getElementById('displayPrice').innerText = price;
     calculateExpiry();
 }
@@ -70,25 +70,23 @@ function calculateExpiry() {
 }
 
 function showBooking() {
-    const name = document.getElementById('userName').value;
-    if(!name || name.trim() === "") return alert("Please enter Student Name");
+    if(!document.getElementById('userName').value.trim()) return alert("Enter Student Name");
     document.getElementById('authSection').classList.add('hidden');
     document.getElementById('bookingSection').classList.remove('hidden');
     calculateExpiry();
 }
 
-// 4. PAYMENT & FIREBASE SAVE
+// 4. PAYMENT
 function payNow() {
     if(!selectedSeat) return alert("Please select a seat first!");
     
     const options = {
-        "key": "rzp_test_SQHamHN8vRebZO", // Your Test Key
+        "key": "rzp_test_SQHamHN8vRebZO",
         "amount": currentPrice * 100,
         "currency": "INR",
         "name": "JAG HARI LIBRARY",
-        "description": "Booking Seat " + selectedSeat,
+        "description": "Seat " + selectedSeat,
         "handler": function (response){
-            // Save to Firebase Database
             database.ref('bookedSeats/' + selectedSeat).set({
                 studentName: document.getElementById('userName').value,
                 expiry: expiryDateString,
@@ -103,13 +101,14 @@ function payNow() {
         },
         "theme": { "color": "#1a237e" }
     };
-    const rzp = new Razorpay(options);
-    rzp.open();
+    new Razorpay(options).open();
 }
 
-// 5. RECEIPT MODAL
 function showReceipt(payID) {
-    document.getElementById('receiptModal').classList.remove('hidden');
+    const modal = document.getElementById('receiptModal');
+    modal.style.display = 'flex'; // Force display to show
+    modal.classList.remove('hidden');
+
     document.getElementById('rID').innerText = payID;
     document.getElementById('rSeat').innerText = selectedSeat;
     document.getElementById('rAmt').innerText = currentPrice;
