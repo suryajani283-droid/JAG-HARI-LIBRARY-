@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JAG HARI LIBRARY | Official Booking</title>
+    <title>JAG HARI LIBRARY | Booking</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
@@ -11,82 +11,59 @@
 </head>
 <body>
 
-    <div class="container" id="authSection">
-        <div class="card">
-            <h2 class="brand-name">JAG HARI LIBRARY</h2>
-            <p class="subtitle">Secure Seat Reservation</p>
-            <div class="form-group">
-                <label>Full Name</label>
-                <input type="text" id="userName" placeholder="Enter Student Name">
+    <div id="authSection" style="display: block;">
+        <div class="card" style="max-width: 400px; margin: 80px auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); text-align: center;">
+            <h2 style="color: #1a237e; margin-bottom: 20px;">JAG HARI LIBRARY</h2>
+            <div style="text-align: left; margin-bottom: 15px;">
+                <label style="display: block; font-weight: bold; margin-bottom: 5px;">Full Name</label>
+                <input type="text" id="userName" style="width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box;" placeholder="Enter Name">
             </div>
-            <div class="form-group">
-                <label>Mobile Number</label>
-                <input type="tel" id="userMobile" placeholder="91XXXXXXXX">
+            <div style="text-align: left; margin-bottom: 15px;">
+                <label style="display: block; font-weight: bold; margin-bottom: 5px;">Mobile</label>
+                <input type="tel" id="userMobile" style="width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box;" placeholder="91XXXXXXXX">
             </div>
-            <div class="form-group">
-                <label>Course Name</label>
-                <input type="text" id="userCourse" placeholder="e.g. Library Study">
-            </div>
-            <button type="button" class="btn-primary" onclick="showBooking()">Continue to Selection</button>
+            <button type="button" onclick="showBooking()" style="width: 100%; padding: 15px; background: #1a237e; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 16px;">Continue to Selection</button>
         </div>
     </div>
 
-    <div class="container hidden" id="bookingSection">
-        <header class="booking-header">
+    <div id="bookingSection" style="display: none;" class="container">
+        <header style="text-align: center; margin-bottom: 20px;">
             <h1>Select Your Seat</h1>
-            <p>JAG HARI LIBRARY - Premium Learning Environment</p>
+            <p>JAG HARI LIBRARY - Barmer</p>
         </header>
 
         <div id="libraryLayout"></div>
 
-        <div class="pricing-section">
-            <div class="date-picker-box">
-                <label><strong>1. Starting Date:</strong></label>
-                <input type="date" id="startDate" onchange="calculateExpiry()">
-            </div>
+        <div class="pricing-section" style="background: white; padding: 20px; border-radius: 10px; margin-top: 20px; border: 1px solid #ddd;">
+            <label><strong>1. Joining Date:</strong></label>
+            <input type="date" id="startDate" onchange="calculateExpiry()" style="width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ccc; border-radius: 6px;">
             
             <label><strong>2. Membership Plan:</strong></label>
-            <div class="plans">
-                <div class="plan-card active" onclick="selectPlan(599, 1, this)">
-                    <h4>1 Month</h4>
-                    <p>₹599</p>
-                </div>
-                <div class="plan-card" onclick="selectPlan(1699, 3, this)">
-                    <h4>3 Months</h4>
-                    <p>₹1699</p>
-                </div>
-                <div class="plan-card" onclick="selectPlan(3200, 6, this)">
-                    <h4>6 Months</h4>
-                    <p>₹3200</p>
-                </div>
+            <div class="plans" style="display: flex; gap: 10px; margin: 15px 0;">
+                <div class="plan-card active" onclick="selectPlan(599, 1, this)">1 Month<br>₹599</div>
+                <div class="plan-card" onclick="selectPlan(1699, 3, this)">3 Month<br>₹1699</div>
+                <div class="plan-card" onclick="selectPlan(3200, 6, this)">6 Month<br>₹3200</div>
             </div>
-            <div id="validityInfo" class="validity-badge">Please select a date</div>
-            <button type="button" class="btn-pay" onclick="payNow()">Pay & Confirm Seat ₹<span id="displayPrice">599</span></button>
+            <div id="validityInfo" style="background: #e8f5e9; color: #2e7d32; padding: 12px; border-radius: 8px; font-weight: bold; margin-bottom: 15px; text-align: center; border: 1px solid #2e7d32;"></div>
+            <button type="button" onclick="payNow()" style="width: 100%; padding: 15px; background: #2e7d32; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 16px;">Pay & Confirm ₹<span id="displayPrice">599</span></button>
         </div>
     </div>
 
-    <div id="receiptModal" class="modal" style="display: none;">
-        <div class="receipt-card">
-            <div class="receipt-banner">
-                <h2>JAG HARI LIBRARY</h2>
-                <p>E-Receipt Confirmation</p>
+    <div id="receiptModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); align-items: center; justify-content: center; z-index: 2000;">
+        <div style="background: white; width: 360px; border-radius: 10px; overflow: hidden;">
+            <div style="background: #1a237e; color: white; padding: 20px; text-align: center;">
+                <h2 style="margin: 0;">JAG HARI LIBRARY</h2>
+                <p style="margin: 5px 0 0;">Official Receipt</p>
             </div>
-            <div class="receipt-content">
-                <div class="receipt-row">
-                    <span><strong>Name:</strong> <span id="rName"></span></span>
-                    <span><strong>Mob:</strong> <span id="rMobile"></span></span>
-                </div>
-                <div class="receipt-grid">
-                    <div class="r-item"><strong>Seat</strong><p id="rSeat"></p></div>
-                    <div class="r-item"><strong>Plan</strong><p id="rPlan"></p></div>
-                    <div class="r-item"><strong>Fees</strong><p>₹<span id="rAmt"></span></p></div>
-                    <div class="r-item"><strong>Expiry</strong><p id="rExpiry"></p></div>
-                </div>
-                <p class="txn-id">Payment ID: <span id="rID"></span></p>
-            </div>
-            <div class="receipt-footer">
-                <button class="btn-print" onclick="window.print()">Print Receipt</button>
-                <button class="btn-close" onclick="location.reload()">Back to Home</button>
+            <div style="padding: 20px;">
+                <p><strong>Name:</strong> <span id="rName"></span></p>
+                <p><strong>Seat:</strong> <span id="rSeat"></span> | <strong>Plan:</strong> <span id="rPlan"></span></p>
+                <p><strong>Paid:</strong> ₹<span id="rAmt"></span></p>
+                <p><strong>Expiry:</strong> <span id="rExpiry"></span></p>
+                <hr style="border: 1px dashed #ccc;">
+                <p style="font-size: 10px; color: #666;">ID: <span id="rID"></span></p>
+                <button onclick="window.print()" style="width: 100%; padding: 12px; background: #1a237e; color: white; border: none; border-radius: 5px; font-weight: bold; cursor: pointer;">Print PDF</button>
+                <button onclick="location.reload()" style="width: 100%; background: none; border: none; color: #666; margin-top: 10px; cursor: pointer;">Close</button>
             </div>
         </div>
     </div>
