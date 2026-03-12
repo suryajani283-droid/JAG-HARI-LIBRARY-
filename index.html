@@ -1,106 +1,88 @@
-let selectedSeat = null;
-let selectedPrice = 599;
-let selectedMonths = 1;
-let expiryDateText = "";
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JAG HARI LIBRARY | Booking</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+</head>
+<body>
 
-// 1. Switch from Login to Booking
-function openBooking() {
-    const name = document.getElementById('userName').value.trim();
-    if(!name) { alert("Please enter Student Name!"); return; }
-    
-    document.getElementById('authSection').classList.add('hidden');
-    document.getElementById('bookingSection').classList.remove('hidden');
-    
-    // Set default date to today
-    const today = new Date().toISOString().split('T')[0];
-    document.getElementById('startDate').value = today;
-    
-    renderSeats();
-    updateValidity();
-}
+    <div class="container" id="authSection" style="display: block;">
+        <div class="card">
+            <h2 class="brand-name">JAG HARI LIBRARY</h2>
+            <p class="subtitle">Digital Seat Reservation</p>
+            <div class="form-group">
+                <label>Student Name</label>
+                <input type="text" id="userName" placeholder="Enter Full Name" required>
+            </div>
+            <div class="form-group">
+                <label>Mobile Number</label>
+                <input type="tel" id="userMobile" placeholder="91XXXXXXXX">
+            </div>
+            <button type="button" class="btn-primary" onclick="startBookingFlow()">Continue to Seats</button>
+        </div>
+    </div>
 
-// 2. Generate Seats (Using LocalStorage instead of Firebase)
-function renderSeats() {
-    const layout = document.getElementById('libraryLayout');
-    const bookedSeats = JSON.parse(localStorage.getItem('bookedSeats')) || {};
-    layout.innerHTML = "";
+    <div class="container" id="bookingSection" style="display: none;">
+        <header class="booking-header">
+            <h1>Select Your Seat</h1>
+            <p>JAG HARI LIBRARY - Barmer</p>
+        </header>
 
-    ['A', 'B', 'C', 'D', 'E'].forEach(sec => {
-        let html = `<div class="section-container"><h3>Section ${sec}</h3><div class="seat-grid">`;
-        for(let i=1; i<=14; i++) {
-            if(i === 8) html += `<div class="aisle"></div>`;
-            let id = `${sec}${i}`;
-            let isOccupied = bookedSeats[id] ? "occupied" : "";
-            let action = bookedSeats[id] ? "" : `onclick="pickSeat('${id}', this)"`;
-            html += `<div class="seat ${isOccupied}" id="${id}" ${action}>${id}</div>`;
-        }
-        layout.innerHTML += html + `</div></div>`;
-    });
-}
+        <div id="libraryLayout"></div>
 
-// 3. Select Seat
-function pickSeat(id, el) {
-    document.querySelectorAll('.seat').forEach(s => s.classList.remove('selected'));
-    el.classList.add('selected');
-    selectedSeat = id;
-}
+        <div class="pricing-section">
+            <div class="date-picker-box">
+                <label><strong>1. Joining Date:</strong></label>
+                <input type="date" id="startDate" onchange="updateInfo()">
+            </div>
+            
+            <label><strong>2. Membership Plan:</strong></label>
+            <div class="plans">
+                <div class="plan-card active" onclick="setPlan(599, 1, this)">
+                    <h4>1 Month</h4>
+                    <p>₹599</p>
+                </div>
+                <div class="plan-card" onclick="setPlan(1699, 3, this)">
+                    <h4>3 Months</h4>
+                    <p>₹1699</p>
+                </div>
+                <div class="plan-card" onclick="setPlan(3200, 6, this)">
+                    <h4>6 Months</h4>
+                    <p>₹3200</p>
+                </div>
+            </div>
+            <div id="validityInfo" class="validity-badge"></div>
+            <button type="button" class="btn-pay" onclick="handlePay()">Book & Pay ₹<span id="priceText">599</span></button>
+        </div>
+    </div>
 
-// 4. Plan Selection
-function selectPlan(price, months, el) {
-    document.querySelectorAll('.plan-card').forEach(p => p.classList.remove('active'));
-    el.classList.add('active');
-    selectedPrice = price;
-    selectedMonths = months;
-    document.getElementById('totalPrice').innerText = price;
-    updateValidity();
-}
+    <div id="receiptModal" class="modal" style="display: none;">
+        <div class="receipt-card">
+            <div class="receipt-banner">
+                <h2>JAG HARI LIBRARY</h2>
+                <p>Payment Successful</p>
+            </div>
+            <div class="receipt-content">
+                <p><strong>Student:</strong> <span id="rName"></span></p>
+                <div class="receipt-grid">
+                    <div class="r-item"><strong>Seat</strong><p id="rSeat"></p></div>
+                    <div class="r-item"><strong>Plan</strong><p id="rPlan"></p></div>
+                    <div class="r-item"><strong>Paid</strong><p>₹<span id="rAmt"></span></p></div>
+                    <div class="r-item"><strong>Expiry</strong><p id="rExpiry"></p></div>
+                </div>
+                <p style="font-size: 10px; color: #666; margin-top: 15px;">Txn ID: <span id="rID"></span></p>
+            </div>
+            <div class="receipt-footer">
+                <button class="btn-primary" onclick="window.print()" style="margin-bottom: 5px;">Print Receipt</button>
+                <button class="btn-close" onclick="location.reload()" style="width: 100%; background: none; border: none; cursor: pointer;">Close</button>
+            </div>
+        </div>
+    </div>
 
-// 5. Date Calculation
-function updateValidity() {
-    const startInput = document.getElementById('startDate').value;
-    if(!startInput) return;
-    const start = new Date(startInput);
-    const end = new Date(start);
-    end.setDate(start.getDate() + (selectedMonths * 30));
-    expiryDateText = end.toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' });
-    document.getElementById('validityInfo').innerText = `Valid Till: ${expiryDateText}`;
-}
-
-// 6. Payment (Razorpay)
-function processPayment() {
-    if(!selectedSeat) { alert("Please select a seat first!"); return; }
-
-    const options = {
-        "key": "rzp_test_SQHamHN8vRebZO", // Replace with your Live Key later
-        "amount": selectedPrice * 100,
-        "name": "JAG HARI LIBRARY",
-        "description": "Seat " + selectedSeat,
-        "handler": function (response){
-            // Save seat as occupied in LocalStorage
-            let booked = JSON.parse(localStorage.getItem('bookedSeats')) || {};
-            booked[selectedSeat] = {
-                name: document.getElementById('userName').value,
-                expiry: expiryDateText
-            };
-            localStorage.setItem('bookedSeats', JSON.stringify(booked));
-
-            showReceipt(response.razorpay_payment_id);
-        },
-        "theme": { "color": "#1a237e" }
-    };
-    const rzp = new Razorpay(options);
-    rzp.open();
-}
-
-// 7. Show Final Receipt
-function showReceipt(txnId) {
-    document.getElementById('receiptModal').style.display = 'flex';
-    document.getElementById('rName').innerText = document.getElementById('userName').value;
-    document.getElementById('rDate').innerText = document.getElementById('startDate').value;
-    document.getElementById('rSeat').innerText = selectedSeat;
-    document.getElementById('rPlan').innerText = selectedMonths + " Month(s)";
-    document.getElementById('rAmt').innerText = selectedPrice;
-    document.getElementById('rExpiry').innerText = expiryDateText;
-    document.getElementById('rID').innerText = txnId;
-}
+    <script src="script.js"></script>
+</body>
+</html>
 
